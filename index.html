@@ -2,30 +2,41 @@
 <html lang="sk">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>🌴 Mallorca – Rodinný sprievodca z Ciudad Laurel, Cala Millor</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fdf6e3;color:#3a2e1e;min-height:100vh}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fdf6e3;color:#3a2e1e;min-height:100vh;overflow:hidden}
     header{
       background:linear-gradient(135deg,#2e7d32 0%,#558b2f 40%,#f9a825 100%);
-      color:#fff;padding:10px 16px;
-      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;
+      color:#fff;padding:8px 12px;
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;
       box-shadow:0 3px 12px rgba(0,0,0,.25)
     }
-    header h1{font-size:1.2rem;display:flex;align-items:center;gap:6px}
-    #deco{background:linear-gradient(90deg,#f9a825,#66bb6a,#f9a825);padding:3px 0;text-align:center;font-size:.72rem;color:#fff;letter-spacing:1.5px;font-weight:600}
-    #map{width:100%;height:calc(100vh - 78px);min-height:550px;border-top:3px solid #a5d6a7}
+    header h1{font-size:1rem;display:flex;align-items:center;gap:5px}
+    @media(min-width:600px){header h1{font-size:1.2rem}}
+    #deco{background:linear-gradient(90deg,#f9a825,#66bb6a,#f9a825);padding:2px 0;text-align:center;font-size:.65rem;color:#fff;letter-spacing:1px;font-weight:600}
+    @media(min-width:600px){#deco{font-size:.72rem;padding:3px 0}}
+    #map{width:100%;height:calc(100vh - 56px);height:calc(100dvh - 56px);border-top:2px solid #a5d6a7}
+    @media(min-width:600px){#map{height:calc(100vh - 66px)}}
     #legend{
       position:fixed;bottom:14px;left:8px;background:rgba(255,255,255,.95);border-radius:10px;
       padding:8px 12px;font-size:.7rem;box-shadow:0 2px 10px rgba(0,0,0,.15);z-index:1100;
-      border:1px solid #c8e6c9;max-width:180px
+      border:1px solid #c8e6c9;max-width:180px;transition:all .3s
     }
+    #legend.collapsed{padding:0;max-width:36px;border-radius:50%;width:36px;height:36px;overflow:hidden;cursor:pointer}
+    #legend.collapsed *:not(#leg-toggle){display:none}
     #legend h4{margin-bottom:4px;color:#2e7d32;font-size:.78rem}
     .lg{display:flex;align-items:center;gap:5px;margin:2px 0}
     .ld{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+    #leg-toggle{
+      position:absolute;top:4px;right:4px;background:none;border:none;font-size:1rem;cursor:pointer;
+      width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#2e7d32
+    }
+    #legend.collapsed #leg-toggle{position:static;width:36px;height:36px;font-size:1.2rem}
+    @media(max-width:500px){#legend{bottom:8px;left:6px;font-size:.65rem;max-width:160px}}
     .wov{
       background:rgba(0,60,120,.65);color:#fff;border-radius:8px;padding:4px 7px;
       font-size:.65rem;font-weight:600;line-height:1.3;text-align:center;
@@ -35,6 +46,42 @@
     .wov .wl{font-size:.55rem;opacity:.72;margin-bottom:1px}
     .wov .wt{font-size:.85rem}
     .wov .ws{font-size:.55rem;opacity:.75;margin-top:1px}
+    #mpanel{
+      display:none;position:fixed;bottom:0;left:0;right:0;z-index:2000;
+      background:linear-gradient(135deg,#fffde7,#f1f8e9);
+      border-top:3px solid #a5d6a7;
+      box-shadow:0 -4px 20px rgba(0,0,0,.25);
+      max-height:55vh;overflow-y:auto;
+      border-radius:16px 16px 0 0;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain
+    }
+    #mpanel.open{display:block;animation:slideUp .3s ease-out}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    #mpanel-handle{width:40px;height:4px;background:#ccc;border-radius:2px;margin:8px auto 4px;display:block}
+    #mpanel-close{
+      position:absolute;top:8px;right:12px;background:#e53935;color:#fff;border:none;
+      width:30px;height:30px;border-radius:50%;font-size:1.1rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)
+    }
+    #mpanel-content{padding:8px 14px 20px}
+    #mpanel-content h3{color:#2e7d32;font-size:1rem;margin-bottom:6px;border-bottom:2px solid #c8e6c9;padding-bottom:4px;padding-right:35px}
+    #mpanel-content .ir{display:flex;align-items:flex-start;gap:5px;margin:3px 0;font-size:.85rem}
+    #mpanel-content .ir .ic{font-size:1rem;flex-shrink:0}
+    #mpanel-content .pb{background:#e8f5e9;border-radius:7px;padding:5px 9px;margin:6px 0;font-size:.82rem;border:1px solid #c8e6c9}
+    #mpanel-content .pb table{width:100%;border-collapse:collapse}
+    #mpanel-content .pb td{padding:2px 3px}
+    #mpanel-content .pb td:last-child{text-align:right;font-weight:700;color:#2e7d32}
+    #mpanel-content .pb .tr td{border-top:1px solid #a5d6a7;font-weight:700;color:#1b5e20;font-size:.88rem}
+    #mpanel-content .dr{background:#fff8e1;border-radius:5px;padding:3px 7px;font-size:.8rem;color:#e65100;font-weight:600;margin:3px 0;border:1px solid #ffe082}
+    #mpanel-content .wb{
+      display:inline-flex;align-items:center;gap:5px;
+      background:linear-gradient(135deg,#33ccff,#0099cc);color:#fff;text-decoration:none;
+      padding:9px 16px;border-radius:20px;font-weight:700;font-size:.9rem;margin-top:8px;
+      box-shadow:0 2px 6px rgba(0,153,204,.3)
+    }
+    #mpanel-content .link-row{margin-top:6px}
+    #mpanel-content .link-row a{color:#1565c0;font-size:.85rem;font-weight:600;text-decoration:underline}
     .cp .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 3px 16px rgba(0,0,0,.2);border:2px solid #a5d6a7;background:linear-gradient(135deg,#fffde7,#f1f8e9);max-width:345px}
     .cp .leaflet-popup-tip{background:#a5d6a7}
     .gp .leaflet-popup-content-wrapper{background:linear-gradient(135deg,#fff3e0,#fff8e1);border:2px solid #ffb74d}
@@ -45,62 +92,78 @@
     .pc h3{color:#2e7d32;font-size:.95rem;margin-bottom:5px;border-bottom:2px solid #c8e6c9;padding-bottom:3px}
     .pc .ir{display:flex;align-items:flex-start;gap:5px;margin:3px 0;font-size:.82rem}
     .pc .ir .ic{font-size:.95rem;flex-shrink:0}
-    .pb{background:#e8f5e9;border-radius:7px;padding:5px 9px;margin:6px 0;font-size:.8rem;border:1px solid #c8e6c9}
-    .pb table{width:100%;border-collapse:collapse}
-    .pb td{padding:2px 3px}
-    .pb td:last-child{text-align:right;font-weight:700;color:#2e7d32}
-    .pb .tr td{border-top:1px solid #a5d6a7;font-weight:700;color:#1b5e20;font-size:.85rem}
-    .dr{background:#fff8e1;border-radius:5px;padding:3px 7px;font-size:.78rem;color:#e65100;font-weight:600;margin:3px 0;border:1px solid #ffe082}
-    .wb{
+    .pc .pb{background:#e8f5e9;border-radius:7px;padding:5px 9px;margin:6px 0;font-size:.8rem;border:1px solid #c8e6c9}
+    .pc .pb table{width:100%;border-collapse:collapse}
+    .pc .pb td{padding:2px 3px}
+    .pc .pb td:last-child{text-align:right;font-weight:700;color:#2e7d32}
+    .pc .pb .tr td{border-top:1px solid #a5d6a7;font-weight:700;color:#1b5e20;font-size:.85rem}
+    .pc .dr{background:#fff8e1;border-radius:5px;padding:3px 7px;font-size:.78rem;color:#e65100;font-weight:600;margin:3px 0;border:1px solid #ffe082}
+    .pc .wb{
       display:inline-flex;align-items:center;gap:5px;
       background:linear-gradient(135deg,#33ccff,#0099cc);color:#fff;text-decoration:none;
       padding:7px 13px;border-radius:18px;font-weight:700;font-size:.83rem;margin-top:6px;
       box-shadow:0 2px 6px rgba(0,153,204,.3);transition:transform .15s
     }
-    .wb:hover{transform:scale(1.05)}
-    .link-row{margin-top:5px}
-    .link-row a{color:#1565c0;font-size:.8rem;font-weight:600;text-decoration:underline}
-    footer{background:#2e7d32;color:#c8e6c9;text-align:center;padding:6px;font-size:.68rem}
+    .pc .wb:hover{transform:scale(1.05)}
+    .pc .link-row{margin-top:5px}
+    .pc .link-row a{color:#1565c0;font-size:.8rem;font-weight:600;text-decoration:underline}
+    @media(max-width:768px){.leaflet-popup{display:none !important}}
+    footer{display:none}
+    @media(min-width:600px){footer{display:block;background:#2e7d32;color:#c8e6c9;text-align:center;padding:5px;font-size:.65rem}}
   </style>
 </head>
 <body>
-<div id="deco">🌿 olivy · mandle · citróny · pomaranče · figy · levanduľa · sobrassada · ensaïmada · víno 🌞</div>
-<header><h1>🗺️ Mallorca – Rodinný sprievodca z Cala Millor</h1></header>
+<div id="deco">🌿 olivy · mandle · citróny · pomaranče · figy · sobrassada · ensaïmada · víno 🌞</div>
+<header><h1>🗺️ Mallorca – Rodinný sprievodca</h1></header>
 <div id="map"></div>
+<div id="mpanel">
+  <span id="mpanel-handle"></span>
+  <button id="mpanel-close" onclick="closePanel()">✕</button>
+  <div id="mpanel-content"></div>
+</div>
 <div id="legend">
+  <button id="leg-toggle" onclick="toggleLeg()">📍</button>
   <h4>📍 Legenda</h4>
-  <div class="lg"><div class="ld" style="background:#e53935"></div> Hotel (východisko)</div>
-  <div class="lg"><div class="ld" style="background:#1565c0"></div> Atrakcie & kultúra</div>
+  <div class="lg"><div class="ld" style="background:#e53935"></div> Hotel</div>
+  <div class="lg"><div class="ld" style="background:#1565c0"></div> Atrakcie</div>
   <div class="lg"><div class="ld" style="background:#7b1fa2"></div> Aquaparky</div>
-  <div class="lg"><div class="ld" style="background:#00796b"></div> Príroda (zadarmo)</div>
-  <div class="lg"><div class="ld" style="background:#f57f17"></div> ⛽ Pumpy – letisko</div>
-  <div class="lg"><div class="ld" style="background:#ad1457"></div> ⛽ Pumpy – hotel</div>
+  <div class="lg"><div class="ld" style="background:#00796b"></div> Príroda</div>
+  <div class="lg"><div class="ld" style="background:#f57f17"></div> ⛽ Pumpy letisko</div>
+  <div class="lg"><div class="ld" style="background:#ad1457"></div> ⛽ Pumpy hotel</div>
   <div class="lg"><div class="ld" style="background:#0277bd"></div> 🚗 ClickRent</div>
   <div class="lg"><div class="ld" style="background:rgba(0,60,120,.65)"></div> 🌤️ Počasie</div>
 </div>
-<footer>Mallorca Guide · Leaflet + ESRI · Navigácia: Waze · Ceny orientačné – overte na stránkach · Počasie: OpenWeatherMap</footer>
+<footer>Mallorca Guide · Leaflet + ESRI · Waze · OpenWeatherMap</footer>
 
 <script>
-// ============ HELPERS ============
+function isMobile(){return window.innerWidth<=768}
+function openPanel(html){
+  const p=document.getElementById('mpanel');
+  document.getElementById('mpanel-content').innerHTML=html;
+  p.classList.add('open');
+  p.addEventListener('touchmove',function(e){e.stopPropagation()},{passive:false});
+}
+function closePanel(){document.getElementById('mpanel').classList.remove('open')}
+function toggleLeg(){document.getElementById('legend').classList.toggle('collapsed')}
+if(window.innerWidth<500) document.getElementById('legend').classList.add('collapsed');
+
 function d2c(d){const a=["S","SSV","SV","VSV","V","VJV","JV","JJV","J","JJZ","JZ","ZJZ","Z","ZSZ","SZ","SSZ"];return a[Math.round(d/22.5)%16]}
 function distKm(a,b,c,d){const R=6371,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function wz(a,b){return`https://waze.com/ul?ll=${a},${b}&navigate=yes`}
 let uLat=null,uLng=null;
 
-// ============ MAP – MALLORCA ONLY ============
 const mallorcaBounds=L.latLngBounds([39.2,2.28],[40.02,3.52]);
 const map=L.map('map',{
   center:[39.62,3.02],zoom:10,
   maxBounds:mallorcaBounds.pad(0.05),
   maxBoundsViscosity:1.0,
-  minZoom:9,maxZoom:18
+  minZoom:9,maxZoom:18,
+  zoomControl:false
 });
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
-  attribution:'© Esri, Maxar',maxZoom:19}).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',{
-  subdomains:'abcd',maxZoom:19,opacity:.85}).addTo(map);
+L.control.zoom({position:'topright'}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri, Maxar',maxZoom:19}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,opacity:.85}).addTo(map);
 
-// ============ ICONS ============
 function mi(col,em,sz){
   sz=sz||32;
   return L.divIcon({
@@ -117,11 +180,6 @@ const icGH=mi('#ad1457','⛽',28);
 const icCR=mi('#0277bd','🚗',34);
 function gIc(c){return c==='aqua'?icQ:c==='nature'?icN:icA}
 
-// ==================================================================
-// DATA – VERIFIED GPS COORDINATES
-// ==================================================================
-
-// #1 HOTEL – Av. Ramon Llull 53, Cala Millor
 const H={name:"🏨 Aparthotel Ciudad Laurel",
   lat:39.608516693115234,lng:3.383681297302246,
   address:"Av. Ramon Llull 53, 07560 Cala Millor",
@@ -130,7 +188,6 @@ const H={name:"🏨 Aparthotel Ciudad Laurel",
   desc:"Aparthotel s bazénom, 200 m od pláže Cala Millor. Váš východiskový bod na Malorke!",
   web:"https://www.hoteleslaurel.com/"};
 
-// #25 CLICKRENT – Calle Can Rius 5, Polígon Son Oms
 const CR={name:"🚗 ClickRent – Autopožičovňa",
   lat:39.53728090720118,lng:2.7348121671540917,
   local:"ClickRent, Polígon Industrial Son Oms, Palma",
@@ -139,229 +196,147 @@ const CR={name:"🚗 ClickRent – Autopožičovňa",
   desc:"Nízkonákladová autopožičovňa blízko letiska. Shuttle bus zadarmo z/na terminál PMI.",
   web:"https://www.clickrent.es/en/"};
 
-// ALL ATTRACTIONS, AQUAPARKS, NATURE
 const A=[
-
-  // #2 Katedrála La Seu
-  {name:"⛪ Katedrála La Seu",
-   lat:39.5674732,lng:2.648168,
-   local:"Catedral de Mallorca (La Seu), Palma",
-   address:"Plaça de la Seu, 07001 Palma",
+  {name:"⛪ Katedrála La Seu",lat:39.5674732,lng:2.648168,
+   local:"Catedral de Mallorca (La Seu), Palma",address:"Plaça de la Seu, 07001 Palma",
    hours:"Po–Pi 10:00–17:15, So 10:00–14:15 (apr–sep)",
-   desc:"Gotická katedrála z 13. storočia priamo nad morom. Ružicové okno (priemer 12 m) patrí k najväčším na svete.",
+   desc:"Gotická katedrála z 13. st. priamo nad morom. Ružicové okno (12 m) – jedno z najväčších na svete.",
    ap:10,cp:0,cn:"Deti do 8r. zadarmo, 9–15r. ~8 €",cp2:8,
    web:"https://catedraldemallorca.org/en/",cat:"attr"},
 
-  // #3 Castell de Bellver
-  {name:"🏰 Castell de Bellver",
-   lat:39.562638349558256,lng:2.6193557549887188,
-   local:"Castell de Bellver, Palma",
-   address:"C/ Camilo José Cela, s/n, 07014 Palma",
-   hours:"Ut–So 10:00–19:00, Ne 10:00–15:00, Po zatvorené (apr–sep)",
-   desc:"Jediný okrúhly gotický hrad v Španielsku. Panoramatický výhľad na Palmu a záliv. Nedeľa = vstup zadarmo!",
+  {name:"🏰 Castell de Bellver",lat:39.562638349558256,lng:2.6193557549887188,
+   local:"Castell de Bellver, Palma",address:"C/ Camilo José Cela, s/n, 07014 Palma",
+   hours:"Ut–So 10:00–19:00, Ne 10:00–15:00, Po zatvorené",
+   desc:"Jediný okrúhly gotický hrad v Španielsku. Panoramatický výhľad. Nedeľa = vstup zadarmo!",
    ap:4,cp:2,cn:"Redukované",cp2:2,
    web:"https://castelldebellver.palma.es/",cat:"attr"},
 
-  // #4 Coves del Drac
-  {name:"🐉 Coves del Drac (Dračie jaskyne)",
-   lat:39.5358623,lng:3.3313875,
-   local:"Coves del Drac, Porto Cristo, municipi de Manacor",
-   address:"Ctra. de les Coves, s/n, 07680 Porto Cristo",
+  {name:"🐉 Coves del Drac",lat:39.5358623,lng:3.3313875,
+   local:"Coves del Drac, Porto Cristo, Manacor",address:"Ctra. de les Coves, s/n, 07680 Porto Cristo",
    hours:"Prehliadky každú hodinu 10:00–17:00 (apr–okt)",
-   desc:"Najslávnejšie jaskyne Mallorky. 1200 m trasa, podzemné jazero Martel, živý klasický koncert na lodiach!",
+   desc:"Najslávnejšie jaskyne Mallorky. 1200 m, jazero Martel, živý koncert na lodiach!",
    ap:16,cp:9.5,cn:"Deti 3–12r.",cp2:9.5,
    web:"https://www.cuevasdeldrach.com/en/",cat:"attr"},
 
-  // #5 Safari Zoo
-  {name:"🦒 Safari Zoo Mallorca",
-   lat:39.581937715329325,lng:3.3625845989428873,
-   local:"Safari Zoo, Sa Coma, Sant Llorenç des Cardassar",
-   address:"Ctra. Porto Cristo – Son Servera (Ma-4023), km 5, Sa Coma",
+  {name:"🦒 Safari Zoo Mallorca",lat:39.581937715329325,lng:3.3625845989428873,
+   local:"Safari Zoo, Sa Coma, Sant Llorenç des Cardassar",address:"Ctra. Porto Cristo – Son Servera, km 5, Sa Coma",
    hours:"Denne 9:30–17:00 (sezónne)",
-   desc:"Africké safari autom + zoo na prechádzku. Žirafy, nosorožce, zebry, opice. Deti to milujú!",
+   desc:"Africké safari autom + zoo. Žirafy, nosorožce, zebry, opice.",
    ap:22,cp:15,cn:"Deti 3–12r.",cp2:15,
-   web:"https://safari-zoo.com/",cat:"attr"},
+   web:"https://safarimallorca.es/en/",cat:"attr"},
 
-  // #6 Rafa Nadal Museum
-  {name:"🏛️ Rafa Nadal Museum Xperience",
-   lat:39.55922068968805,lng:3.216138526678931,
-   local:"Rafa Nadal Museum Xperience, Manacor",
-   address:"Ctra. Cales de Mallorca, s/n, 07500 Manacor",
+  {name:"🏛️ Rafa Nadal Museum",lat:39.55922068968805,lng:3.216138526678931,
+   local:"Rafa Nadal Museum Xperience, Manacor",address:"Ctra. Cales de Mallorca, s/n, 07500 Manacor",
    hours:"Po–So 10:00–18:30 (sezónne)",
-   desc:"Interaktívne múzeum – Nadalove trofeje + simulátory F1, cyklistiky, futbalu.",
+   desc:"Nadalove trofeje + simulátory F1, cyklistiky, futbalu.",
    ap:22,cp:16,cn:"Deti 5–15r.",cp2:16,
    web:"https://www.rafanadalmuseum.com/en/",cat:"attr"},
 
-  // #7 Palma Aquarium
-  {name:"🐠 Palma Aquarium",
-   lat:39.5315644939313,lng:2.729518469006145,
-   local:"Palma Aquarium, Platja de Palma, Palma",
-   address:"C/ Manuela de los Herreros i Sorà 21, 07610 Palma",
-   hours:"Denne 10:00–17:30 (posledný vstup 16:00)",
-   desc:"8000+ morských tvorov. Žraločí tunel Big Blue (8.5 m), dotykové bazéniky, pirátske ihrisko, dážďový prales.",
+  {name:"🐠 Palma Aquarium",lat:39.5315644939313,lng:2.729518469006145,
+   local:"Palma Aquarium, Platja de Palma, Palma",address:"C/ Manuela de los Herreros 21, 07610 Palma",
+   hours:"Denne 10:00–17:30",
+   desc:"8000+ morských tvorov. Žraločí tunel Big Blue, dotykové bazéniky, pirátske ihrisko.",
    ap:27.5,cp:18,cn:"Deti 4–12r.",cp2:18,
    web:"https://www.palmaaquarium.com/en/",cat:"attr"},
 
-  // #8 Sóller – parking Desvío
-  {name:"🚂 Sóller (vlak + parking Desvío)",
-   lat:39.76847671801035,lng:2.7146254427832717,
-   local:"Sóller – Parking Desvío (Carretera de Desviament)",
-   address:"Carretera de Desviament (Desvío), 07100 Sóller",
-   hours:"Vlak z Palmy: 10:10, 10:50, 12:15, 13:00, 14:00 (sezónne). Parking: 24/7.",
-   desc:"Pin = parkovisko Desvío (~10 min pešo do centra). Centrum Sóller je pre autá obmedzené! Historický vlak z 1912 + električka do Port de Sóller.",
-   ap:25,cp:9,cn:"Deti 3–12r. (vlak spiatočná). Električka: dosp. ~10 €, dieťa ~4 €",cp2:9,
+  {name:"🚂 Sóller (parking Desvío)",lat:39.76847671801035,lng:2.7146254427832717,
+   local:"Sóller – Parking Desvío",address:"Carretera de Desviament, 07100 Sóller",
+   hours:"Vlak z Palmy: 10:10, 10:50, 12:15, 13:00, 14:00",
+   desc:"Parking ~10 min pešo do centra. Historický vlak z 1912 + električka do Port de Sóller. ⚠️🟢 NEPARKUJTE na ZELENÝCH ČIARACH – tie sú LEN pre rezidentov! Hrozí pokuta! Parkujte len na bielych alebo modrých (platených) čiarach.",
+   ap:25,cp:9,cn:"Deti 3–12r. (spiatočná). Električka: ~10 €/4 €",cp2:9,
    web:"https://trendesoller.com/en/",cat:"attr"},
 
-  // #9 Alcúdia – staré mesto (parking)
-  {name:"🏛️ Alcúdia – staré mesto",
-   lat:39.85467872494972,lng:3.124817011562823,
-   local:"Alcúdia – Parking Passeig Mare de Déu de la Victòria",
-   address:"Passeig de la Mare de Déu de la Victòria, 07400 Alcúdia",
-   hours:"Hradby: celodenný prístup. Trh: Ut + Ne dopoludnia.",
-   desc:"Stredoveké hradby, rímske ruiny Pollentia. Pin = parkovisko pri hradbách, 3 min pešo do centra.",
+  {name:"🏛️ Alcúdia – staré mesto",lat:39.85467872494972,lng:3.124817011562823,
+   local:"Alcúdia – Parking Passeig Mare de Déu",address:"Passeig Mare de Déu de la Victòria, 07400 Alcúdia",
+   hours:"Hradby: celodenný. Trh: Ut + Ne dopoludnia.",
+   desc:"Stredoveké hradby, rímske ruiny. Pin = parkovisko, 3 min pešo do centra.",
    ap:0,cp:0,free:true,cn:"",
    web:"https://www.alcudia.net/turisme/en/",cat:"attr"},
 
-  // #10 Valldemossa (orientačný GPS)
-  {name:"🏘️ Valldemossa + Kartúzia",
-   lat:39.7106,lng:2.6215,
-   local:"Valldemossa – Parking públic (pri vstupe do mesta)",
-   address:"Ctra. Valldemossa, 07170 Valldemossa",
-   hours:"Po–So 10:00–17:00 (kláštor, sezónne)",
-   desc:"Horská dedinka kde žil Chopin. Kartúzia – kláštor s múzeom, záhradami a lekárňou z 18. st.",
+  {name:"🏘️ Valldemossa + Kartúzia",lat:39.7106,lng:2.6215,
+   local:"Valldemossa – Parking públic",address:"Ctra. Valldemossa, 07170 Valldemossa",
+   hours:"Po–So 10:00–17:00 (kláštor)",
+   desc:"Horská dedinka kde žil Chopin. Kartúzia – kláštor s múzeom a záhradami.",
    ap:10,cp:4.5,cn:"Deti 8–14r. (<8r. zadarmo)",cp2:4.5,
    web:"https://www.cartujadevallemossa.com/",cat:"attr"},
 
-  // ---- AQUAPARKY ----
-
-  // #11 Aqualand El Arenal
-  {name:"🎢 Aqualand El Arenal",
-   lat:39.49591185421109,lng:2.7594918690052372,
-   local:"Aqualand El Arenal, S'Arenal, Llucmajor",
-   address:"Autopista Palma – s'Arenal, sortida 13, 07600 S'Arenal",
+  {name:"🎢 Aqualand El Arenal",lat:39.49591185421109,lng:2.7594918690052372,
+   local:"Aqualand El Arenal, S'Arenal, Llucmajor",address:"Autopista Palma – s'Arenal, sortida 13",
    hours:"Jún–Sep: 10:00–17:00/18:00",
-   desc:"Najväčší aquapark na Malorke! King Cobra, Banzai, Dragoland pre malé deti, obrie vlnové bazény.",
-   ap:33,cp:23,cn:"Deti 5–10r. (110–140 cm), <4r. zadarmo",cp2:23,
+   desc:"Najväčší aquapark na Malorke! King Cobra, Banzai, Dragoland.",
+   ap:33,cp:23,cn:"Deti 5–10r. (110–140 cm)",cp2:23,
    web:"https://www.aqualand.es/mallorca/en/",cat:"aqua"},
 
-  // #12 Western Water Park
-  {name:"🎢 Western Water Park",
-   lat:39.506144179919836,lng:2.518444974028258,
-   local:"Western Water Park, Magaluf, Calvià",
-   address:"Ctra. Cala Figuera, s/n, 07181 Magaluf, Calvià",
+  {name:"🎢 Western Water Park",lat:39.506144179919836,lng:2.518444974028258,
+   local:"Western Water Park, Magaluf, Calvià",address:"Ctra. Cala Figuera, s/n, 07181 Magaluf",
    hours:"Máj–Okt: 10:00–17:00/18:00",
-   desc:"Najvyššie tobogány Mallorky v štýle Divokého Západu! Beast, The Flash, detské zóny.",
+   desc:"Najvyššie tobogány Mallorky – Divoký Západ!",
    ap:32,cp:22.5,cn:"Deti 5–10r. (110–140 cm)",cp2:22.5,
    web:"https://www.westernpark.com/en/",cat:"aqua"},
 
-  // #13 Hidropark Alcúdia
-  {name:"🎢 Hidropark Alcúdia",
-   lat:39.84041574527867,lng:3.1148904602501903,
-   local:"Hidropark, Port d'Alcúdia, Alcúdia",
-   address:"Av. del Tucà, s/n, 07400 Port d'Alcúdia",
+  {name:"🎢 Hidropark Alcúdia",lat:39.84041574527867,lng:3.1148904602501903,
+   local:"Hidropark, Port d'Alcúdia",address:"Av. del Tucà, s/n, 07400 Port d'Alcúdia",
    hours:"Máj–Okt: 10:00–17:00",
-   desc:"Menší rodinný aquapark – miernejšie šmýkačky, detské bazény, minigolf, trampolíny.",
+   desc:"Menší rodinný aquapark – miernejšie šmýkačky, minigolf.",
    ap:23,cp:16.5,cn:"Deti 4–12r.",cp2:16.5,
    web:"https://www.hidroparkalcudia.com/en/",cat:"aqua"},
 
-  // ---- PRÍRODA (zadarmo) ----
-
-  // #14 Cap de Formentor
-  {name:"🏔️ Cap de Formentor",
-   lat:39.96164270952352,lng:3.2123418131974133,
-   local:"Cap de Formentor, Pollença",
-   address:"Far de Formentor, 07460 Pollença",
-   hours:"Celodenný. Jún–sep: autá zakázané → autobus z Port de Pollença (~5 €/os.)",
-   desc:"Najsevernejší mys Mallorky. Dramatické útesy 200 m nad morom, maják, borovicové lesy.",
+  {name:"🏔️ Cap de Formentor",lat:39.96164270952352,lng:3.2123418131974133,
+   local:"Cap de Formentor, Pollença",address:"Far de Formentor, 07460 Pollença",
+   hours:"Celodenný. Jún–sep: autobus z Port de Pollença (~5 €/os.)",
+   desc:"Najsevernejší mys Mallorky. Útesy 200 m nad morom, maják.",
    ap:0,cp:0,free:true,cn:"Autobus v sezóne ~5 €/os.",
    web:"https://www.infomallorca.net/",cat:"nature"},
 
-  // #15 Parc Natural de Mondragó
-  {name:"🌿 Parc Natural de Mondragó",
-   lat:39.35654781119702,lng:3.1906296362079876,
-   local:"Parc Natural de Mondragó, Santanyí",
-   address:"Ctra. de Cala Mondragó, 07691 Santanyí",
+  {name:"🌿 Parc Natural de Mondragó",lat:39.35654781119702,lng:3.1906296362079876,
+   local:"Parc Natural de Mondragó, Santanyí",address:"Ctra. de Cala Mondragó, 07691 Santanyí",
    hours:"Denne. Info centrum: 9:00–16:00",
-   desc:"Chránený park. Ľahké chodníky ideálne pre deti. Pláže Cala Mondragó a S'Amarador – krištáľová voda.",
+   desc:"Chránený park. Pláže Cala Mondragó a S'Amarador – krištáľová voda.",
    ap:0,cp:0,free:true,cn:"Parkovanie ~6 €",
    web:"https://www.balearsnatura.com/",cat:"nature"},
 
-  // #16 Punta de n'Amer
-  {name:"⛰️ Punta de n'Amer",
-   lat:39.58015657920935,lng:3.3961697219565963,
-   local:"Punta de n'Amer, Sa Coma, Sant Llorenç des Cardassar",
-   address:"Prístup pešo z Cala Millor alebo Sa Coma (~30 min)",
+  {name:"⛰️ Punta de n'Amer",lat:39.58015657920935,lng:3.3961697219565963,
+   local:"Punta de n'Amer, Sa Coma",address:"Pešo z Cala Millor (~30 min)",
    hours:"Celodenný prístup",
-   desc:"Prírodná rezervácia s pevnosťou zo 17. st., reštaurácia, ranč s poníkmi. 30 min pešo z hotela!",
-   ap:0,cp:0,free:true,cn:"",
-   web:"",cat:"nature"},
+   desc:"Prírodná rezervácia, pevnosť, reštaurácia, ranč s poníkmi.",
+   ap:0,cp:0,free:true,cn:"",web:"",cat:"nature"},
 
-  // #17 Santuari de Lluc (orientačný GPS)
-  {name:"⛰️ Santuari de Lluc",
-   lat:39.8225,lng:2.8858,
-   local:"Santuari de Lluc, Escorca, Serra de Tramuntana",
-   address:"Plaça dels Pelegrins 1, 07315 Escorca",
+  {name:"⛰️ Santuari de Lluc",lat:39.8225,lng:2.8858,
+   local:"Santuari de Lluc, Escorca, Tramuntana",address:"Plaça dels Pelegrins 1, 07315 Escorca",
    hours:"Bazilika: 7:00–20:00. Múzeum: 10:00–14:00.",
-   desc:"Najdôležitejšie pútnické miesto Mallorky v Tramuntane. Botanická záhrada, múzeum, turistické trasy.",
-   ap:0,cp:0,free:true,cn:"Múzeum ~4 €/dosp., ~2 €/dieťa",
+   desc:"Najdôležitejšie pútnické miesto. Botanická záhrada, turistické trasy.",
+   ap:0,cp:0,free:true,cn:"Múzeum ~4 €/2 €",
    web:"https://www.lluc.net/",cat:"nature"},
 
-  // #18 Platja d'Es Trenc
-  {name:"🏖️ Platja d'Es Trenc",
-   lat:39.35587654594722,lng:2.969531586856009,
-   local:"Platja d'Es Trenc, Campos",
-   address:"Es Trenc, 07630 Campos",
-   hours:"Verejná pláž – celodenný prístup",
-   desc:"Najkrajšia prírodná pláž Mallorky – tyrkysová voda, biely piesok, žiadne výškové budovy.",
-   ap:0,cp:0,free:true,cn:"Parkovanie ~7 €",
-   web:"",cat:"nature"}
+  {name:"🏖️ Platja d'Es Trenc",lat:39.35587654594722,lng:2.969531586856009,
+   local:"Platja d'Es Trenc, Campos",address:"Es Trenc, 07630 Campos",
+   hours:"Verejná pláž – celodenný",
+   desc:"Najkrajšia prírodná pláž – tyrkysová voda, biely piesok.",
+   ap:0,cp:0,free:true,cn:"Parkovanie ~7 €",web:"",cat:"nature"}
 ];
 
-// ==================================================================
-// PUMPY LETISKO
-// ==================================================================
 const GA=[
-  // #19 Repsol Can Pastilla
-  {name:"⛽ Repsol – Can Pastilla",
-   lat:39.54811096521017,lng:2.7030958031280083,
-   local:"Estació de Servei Repsol, Can Pastilla, Palma",
-   address:"Ctra. Militar 275, 07610 Can Pastilla",
+  {name:"⛽ Repsol – Can Pastilla",lat:39.54811096521017,lng:2.7030958031280083,
+   local:"Repsol, Can Pastilla, Palma",address:"Ctra. Militar 275, Can Pastilla",
    hours:"24 h",p95:"~1.72–1.82 €/l",diesel:"~1.65–1.75 €/l",
-   note:"Najbližšia verejná pumpa k letisku (~3 min autom)"},
-
-  // #20 Repsol Ma-19
-  {name:"⛽ Repsol – Letisko (Ma-19)",
-   lat:39.53559565123923,lng:2.735015000480672,
-   local:"Estación de Servicio Repsol, Ma-19, Palma",
-   address:"Autopista Ma-19, blízko letiska PMI, Palma",
+   note:"Najbližšia pumpa k letisku (~3 min)"},
+  {name:"⛽ Repsol – Ma-19 (letisko)",lat:39.53559565123923,lng:2.735015000480672,
+   local:"Repsol, Ma-19, Palma",address:"Autopista Ma-19, pri letisku PMI",
    hours:"24 h",p95:"~1.70–1.80 €/l",diesel:"~1.64–1.74 €/l",
-   note:"Priamo na autopiste Ma-19 pri letisku"}
+   note:"Na autopiste Ma-19 pri letisku"}
 ];
 
-// ==================================================================
-// PUMPY HOTEL
-// ==================================================================
 const GH=[
-  // #22 Repsol Son Servera
-  {name:"⛽ Repsol – Son Servera",
-   lat:39.61480980044558,lng:3.3702953329193033,
-   local:"Estació de Servei Repsol, Son Servera",
-   address:"Ctra. Son Servera (Ma-4027), 07550 Son Servera",
+  {name:"⛽ Repsol – Son Servera",lat:39.61480980044558,lng:3.3702953329193033,
+   local:"Repsol, Son Servera",address:"Ctra. Son Servera (Ma-4027)",
    hours:"07:00–22:00",p95:"~1.72–1.80 €/l",diesel:"~1.65–1.75 €/l",
-   note:"Najbližšia značková pumpa k hotelu (~4 min autom)"},
-
-  // #23 Cepsa Sant Llorenç / Cala Millor
-  {name:"⛽ Cepsa – Cala Millor",
-   lat:39.59610079665628,lng:3.378691742434574,
-   local:"Estació de Servei Cepsa, Cala Millor / Sant Llorenç",
-   address:"Ctra. Ma-4030, Cala Millor",
+   note:"Najbližšia pumpa k hotelu (~4 min)"},
+  {name:"⛽ Cepsa – Cala Millor",lat:39.59610079665628,lng:3.378691742434574,
+   local:"Cepsa, Cala Millor / Sant Llorenç",address:"Ctra. Ma-4030, Cala Millor",
    hours:"07:00–21:30",p95:"~1.70–1.78 €/l",diesel:"~1.64–1.72 €/l",
-   note:"Priamo v Cala Millor – najbližšia k hotelu!"}
+   note:"Priamo v Cala Millor!"}
 ];
 
-// ==================================================================
-// WEATHER POINTS (in the sea)
-// ==================================================================
 const WP=[
   {id:"palma",label:"Palma",lat:39.50,lng:2.55,city:"Palma,ES"},
   {id:"cala",label:"Cala Millor",lat:39.59,lng:3.44,city:"Son Servera,ES"},
@@ -371,7 +346,6 @@ const WP=[
   {id:"soller",label:"Port de Sóller",lat:39.80,lng:2.66,city:"Soller,ES"}
 ];
 
-// ============ POPUP BUILDERS ============
 function priceBox(p){
   if(p.free) return `<div class="pb">✅ <strong>Vstup zadarmo</strong>${p.cn?'<br>💡 '+p.cn:''}</div>`;
   if(!p.ap) return '';
@@ -384,90 +358,93 @@ function priceBox(p){
   </table></div>`;
 }
 
-function popA(p){
+function contentA(p){
   const dh=distKm(H.lat,H.lng,p.lat,p.lng).toFixed(1);
   const du=uLat?distKm(uLat,uLng,p.lat,p.lng).toFixed(1)+' km':'📱 zapnite GPS';
-  return `<div class="pc">
-    <h3>${p.name}</h3>
+  return `<h3>${p.name}</h3>
     <div class="ir"><span class="ic">🏷️</span><span><em>${p.local}</em></span></div>
     <div class="ir"><span class="ic">📍</span><span>${p.address}</span></div>
     <div class="ir"><span class="ic">🕐</span><span>${p.hours}</span></div>
     <div class="ir"><span class="ic">ℹ️</span><span>${p.desc}</span></div>
     ${priceBox(p)}
-    <div class="dr">🏨 Od hotela: <strong>${dh} km</strong> (~${Math.round(parseFloat(dh)*1.3)} min autom)</div>
-    <div class="dr">📱 Od vašej polohy: <strong>${du}</strong></div>
+    <div class="dr">🏨 Od hotela: <strong>${dh} km</strong> (~${Math.round(parseFloat(dh)*1.3)} min)</div>
+    <div class="dr">📱 Od vás: <strong>${du}</strong></div>
     <a class="wb" href="${wz(p.lat,p.lng)}" target="_blank">🚗 Naviguj cez Waze</a>
-    ${p.web?`<div class="link-row">🌐 <a href="${p.web}" target="_blank">Oficiálna stránka</a></div>`:''}
-  </div>`;
+    ${p.web?`<div class="link-row">🌐 <a href="${p.web}" target="_blank">Oficiálna stránka</a></div>`:''}`;
 }
 
-function popG(g){
+function contentG(g){
   const dh=distKm(H.lat,H.lng,g.lat,g.lng).toFixed(1);
   const du=uLat?distKm(uLat,uLng,g.lat,g.lng).toFixed(1)+' km':'—';
-  return `<div class="pc">
-    <h3>${g.name}</h3>
+  return `<h3>${g.name}</h3>
     <div class="ir"><span class="ic">🏷️</span><span><em>${g.local}</em></span></div>
     <div class="ir"><span class="ic">📍</span><span>${g.address}</span></div>
     <div class="ir"><span class="ic">🕐</span><span>${g.hours}</span></div>
-    <div class="ir"><span class="ic">💶</span><span><strong>Natural 95:</strong> ${g.p95}</span></div>
+    <div class="ir"><span class="ic">💶</span><span><strong>95:</strong> ${g.p95}</span></div>
     <div class="ir"><span class="ic">⛽</span><span><strong>Diesel:</strong> ${g.diesel}</span></div>
     <div class="ir"><span class="ic">💡</span><span>${g.note}</span></div>
     <div class="dr">🏨 Od hotela: <strong>${dh} km</strong> (~${Math.round(parseFloat(dh)*1.3)} min) | 📱 Od vás: <strong>${du}</strong></div>
-    <a class="wb" href="${wz(g.lat,g.lng)}" target="_blank">🚗 Naviguj cez Waze</a>
-  </div>`;
+    <a class="wb" href="${wz(g.lat,g.lng)}" target="_blank">🚗 Naviguj cez Waze</a>`;
 }
 
-// ============ MARKERS ============
-
-// HOTEL
-L.marker([H.lat,H.lng],{icon:icH,zIndexOffset:1000}).addTo(map)
-  .bindPopup(`<div class="pc">
-    <h3>${H.name}</h3>
+function contentH(){
+  return `<h3>${H.name}</h3>
     <div class="ir"><span class="ic">🏷️</span><span><em>${H.local}</em></span></div>
     <div class="ir"><span class="ic">📍</span><span>${H.address}</span></div>
     <div class="ir"><span class="ic">ℹ️</span><span>${H.desc}</span></div>
     <div class="pb">🏠 <strong>Váš hotel – východiskový bod</strong></div>
     <a class="wb" href="${wz(H.lat,H.lng)}" target="_blank">🚗 Naviguj sem</a>
-    <div class="link-row">🌐 <a href="${H.web}" target="_blank">Web hotela</a></div>
-  </div>`,{className:'cp',maxWidth:340})
-  .bindTooltip('🏨 Hotel Ciudad Laurel',{direction:'top',offset:[0,-40]});
+    <div class="link-row">🌐 <a href="${H.web}" target="_blank">Web hotela</a></div>`;
+}
 
-// ATTRACTIONS
-A.forEach(p=>{
-  const m=L.marker([p.lat,p.lng],{icon:gIc(p.cat)}).addTo(map);
-  m.on('click',()=>{m.unbindPopup();m.bindPopup(popA(p),{className:'cp',maxWidth:350}).openPopup()});
-  m.bindTooltip(p.name,{direction:'top',permanent:false,offset:[0,-28]});
-});
-
-// GAS STATIONS – AIRPORT
-GA.forEach(g=>{
-  const m=L.marker([g.lat,g.lng],{icon:icGA}).addTo(map);
-  m.on('click',()=>{m.unbindPopup();m.bindPopup(popG(g),{className:'cp gp',maxWidth:340}).openPopup()});
-  m.bindTooltip(g.name,{direction:'top',permanent:false,offset:[0,-26]});
-});
-
-// GAS STATIONS – HOTEL
-GH.forEach(g=>{
-  const m=L.marker([g.lat,g.lng],{icon:icGH}).addTo(map);
-  m.on('click',()=>{m.unbindPopup();m.bindPopup(popG(g),{className:'cp gp',maxWidth:340}).openPopup()});
-  m.bindTooltip(g.name,{direction:'top',permanent:false,offset:[0,-26]});
-});
-
-// CLICKRENT
-L.marker([CR.lat,CR.lng],{icon:icCR,zIndexOffset:800}).addTo(map)
-  .bindPopup(`<div class="pc">
-    <h3>${CR.name}</h3>
+function contentCR(){
+  return `<h3>${CR.name}</h3>
     <div class="ir"><span class="ic">🏷️</span><span><em>${CR.local}</em></span></div>
     <div class="ir"><span class="ic">📍</span><span>${CR.address}</span></div>
     <div class="ir"><span class="ic">🕐</span><span>${CR.hours}</span></div>
     <div class="ir"><span class="ic">ℹ️</span><span>${CR.desc}</span></div>
     <div class="pb">🚗 <strong>Tu vyzdvihnete / vrátite auto</strong></div>
     <a class="wb" href="${wz(CR.lat,CR.lng)}" target="_blank">🚗 Naviguj cez Waze</a>
-    <div class="link-row">🌐 <a href="${CR.web}" target="_blank">clickrent.es</a></div>
-  </div>`,{className:'cp rp',maxWidth:340})
-  .bindTooltip('🚗 ClickRent – Autopožičovňa',{direction:'top',offset:[0,-30]});
+    <div class="link-row">🌐 <a href="${CR.web}" target="_blank">clickrent.es</a></div>`;
+}
 
-// ============ GEOLOCATION ============
+function showInfo(marker,html,popupClass){
+  if(isMobile()){
+    openPanel(html);
+  }else{
+    marker.unbindPopup();
+    marker.bindPopup(`<div class="pc">${html}</div>`,{className:popupClass||'cp',maxWidth:350,autoPan:true,autoPanPaddingTopLeft:[20,80],autoPanPaddingBottomRight:[20,20]}).openPopup();
+  }
+}
+
+const hm=L.marker([H.lat,H.lng],{icon:icH,zIndexOffset:1000}).addTo(map);
+hm.on('click',()=>showInfo(hm,contentH(),'cp'));
+hm.bindTooltip('🏨 Hotel',{direction:'top',offset:[0,-40]});
+
+A.forEach(p=>{
+  const m=L.marker([p.lat,p.lng],{icon:gIc(p.cat)}).addTo(map);
+  m.on('click',()=>showInfo(m,contentA(p),'cp'));
+  m.bindTooltip(p.name,{direction:'top',permanent:false,offset:[0,-28]});
+});
+
+GA.forEach(g=>{
+  const m=L.marker([g.lat,g.lng],{icon:icGA}).addTo(map);
+  m.on('click',()=>showInfo(m,contentG(g),'cp gp'));
+  m.bindTooltip(g.name,{direction:'top',permanent:false,offset:[0,-26]});
+});
+
+GH.forEach(g=>{
+  const m=L.marker([g.lat,g.lng],{icon:icGH}).addTo(map);
+  m.on('click',()=>showInfo(m,contentG(g),'cp gp'));
+  m.bindTooltip(g.name,{direction:'top',permanent:false,offset:[0,-26]});
+});
+
+const crm=L.marker([CR.lat,CR.lng],{icon:icCR,zIndexOffset:800}).addTo(map);
+crm.on('click',()=>showInfo(crm,contentCR(),'cp rp'));
+crm.bindTooltip('🚗 ClickRent',{direction:'top',offset:[0,-30]});
+
+map.on('click',()=>{closePanel()});
+
 if(navigator.geolocation){
   navigator.geolocation.watchPosition(pos=>{
     uLat=pos.coords.latitude;uLng=pos.coords.longitude;
@@ -478,7 +455,6 @@ if(navigator.geolocation){
   },()=>{},{enableHighAccuracy:true,maximumAge:30000});
 }
 
-// ============ WEATHER ON MAP ============
 const OW_KEY='c21523e4f39e117b8e102abe90ec9ab3';
 
 function weatherIcon(code){
@@ -504,22 +480,12 @@ WP.forEach(wp=>{
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(wp.city)}&units=metric&lang=sk&appid=${OW_KEY}`)
     .then(r=>r.json()).then(d=>{
       if(d.cod===200){
-        createWO(wp,{
-          temp:Math.round(d.main.temp),
-          wind:(d.wind.speed*3.6).toFixed(0),
-          dir:d2c(d.wind.deg||0),
-          desc:d.weather[0].description,
-          icon:weatherIcon(d.weather[0].id)
-        });
+        createWO(wp,{temp:Math.round(d.main.temp),wind:(d.wind.speed*3.6).toFixed(0),dir:d2c(d.wind.deg||0),desc:d.weather[0].description,icon:weatherIcon(d.weather[0].id)});
       }else{fbW(wp)}
     }).catch(()=>{fbW(wp)});
 });
+function fbW(wp){createWO(wp,{temp:'—',wind:'—',dir:'—',desc:'nedostupné',icon:'❓'})}
 
-function fbW(wp){
-  createWO(wp,{temp:'—',wind:'—',dir:'—',desc:'nedostupné',icon:'❓'});
-}
-
-// Pulse animation
 const st=document.createElement('style');
 st.textContent='@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(33,150,243,.5)}70%{box-shadow:0 0 0 14px rgba(33,150,243,0)}100%{box-shadow:0 0 0 0 rgba(33,150,243,0)}}';
 document.head.appendChild(st);
