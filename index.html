@@ -191,7 +191,6 @@ function mi(col,em,sz){
     className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz],popupAnchor:[0,-sz]
   });
 }
-// Špeciálna ikonka pre Nemocnice (biely kríž cez CSS class)
 function miCross(col,sz){
   sz=sz||32;
   return L.divIcon({
@@ -211,9 +210,7 @@ const icGA=mi('#f57f17','⛽',28);
 const icGH=mi('#ad1457','⛽',28);
 const icCR=mi('#0277bd','🚗',34);
 
-// Nemocnice = červená s krížom
 const icMd=miCross('#d32f2f',32);
-// Lekárne = zelená s krížom
 const icPh=miCross('#4caf50',28);
 
 function gIc(c){
@@ -412,7 +409,7 @@ const A=[
    desc:"Krásna rodinná zátoka s bielym pieskom a plytkou vodou. Na okrajoch skaly ideálne na šnorchlovanie.",
    free:true,cat:"snorkel"},
 
-  // PEKÁRNE (bez otváracích hodín)
+  // PEKÁRNE
   {name:"🥐 Forn de la Soca",lat:39.57153787884731,lng:2.6501560487439098,
    local:"Palma",address:"Carrer de Sant Jaume 23, Palma",
    desc:"Tradičná pekáreň zameraná na historické malorské recepty. Super Ensaïmada!",
@@ -636,7 +633,7 @@ function createWO(wp,d){
 }
 
 WP.forEach(wp=>{
-  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(wp.city)}&units=metric&lang=sk&appid=${OW_KEY}`)
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${wp.lat}&lon=${wp.lng}&units=metric&lang=sk&appid=${OW_KEY}`)
     .then(r=>r.json()).then(d=>{
       if(d.cod===200){
         createWO(wp,{temp:Math.round(d.main.temp),wind:(d.wind.speed*3.6).toFixed(0),dir:d2c(d.wind.deg||0),desc:d.weather[0].description,icon:weatherIcon(d.weather[0].id)});
