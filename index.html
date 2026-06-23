@@ -21,6 +21,7 @@
     @media(min-width:600px){#deco{font-size:.72rem;padding:3px 0}}
     #map{width:100%;height:calc(100vh - 56px);height:calc(100dvh - 56px);border-top:2px solid #a5d6a7}
     @media(min-width:600px){#map{height:calc(100vh - 66px)}}
+    
     #legend{
       position:fixed;bottom:14px;left:8px;background:rgba(255,255,255,.95);border-radius:10px;
       padding:8px 12px;font-size:.7rem;box-shadow:0 2px 10px rgba(0,0,0,.15);z-index:1100;
@@ -38,6 +39,7 @@
     }
     #legend.collapsed #leg-toggle{position:static;width:36px;height:36px;font-size:1.2rem}
     @media(max-width:500px){#legend{bottom:8px;left:6px;font-size:.65rem;max-width:160px}}
+    
     .wov{
       background:rgba(0,60,120,.65);color:#fff;border-radius:8px;padding:4px 7px;
       font-size:.65rem;font-weight:600;line-height:1.3;text-align:center;
@@ -47,6 +49,7 @@
     .wov .wl{font-size:.55rem;opacity:.72;margin-bottom:1px}
     .wov .wt{font-size:.85rem}
     .wov .ws{font-size:.55rem;opacity:.75;margin-top:1px}
+    
     #mpanel{
       display:none;position:fixed;bottom:0;left:0;right:0;z-index:2000;
       background:linear-gradient(135deg,#fffde7,#f1f8e9);
@@ -83,6 +86,7 @@
     }
     #mpanel-content .link-row{margin-top:6px}
     #mpanel-content .link-row a{color:#1565c0;font-size:.85rem;font-weight:600;text-decoration:underline}
+    
     .cp .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 3px 16px rgba(0,0,0,.2);border:2px solid #a5d6a7;background:linear-gradient(135deg,#fffde7,#f1f8e9);max-width:345px}
     .cp .leaflet-popup-tip{background:#a5d6a7}
     .gp .leaflet-popup-content-wrapper{background:linear-gradient(135deg,#fff3e0,#fff8e1);border:2px solid #ffb74d}
@@ -108,6 +112,16 @@
     .pc .wb:hover{transform:scale(1.05)}
     .pc .link-row{margin-top:5px}
     .pc .link-row a{color:#1565c0;font-size:.8rem;font-weight:600;text-decoration:underline}
+    
+    /* Ikonky kríža cez CSS aby bol biely */
+    .cross-icon {
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+        line-height: 1;
+        font-family: sans-serif;
+    }
+
     @media(max-width:768px){.leaflet-popup{display:none !important}}
     footer{display:none}
     @media(min-width:600px){footer{display:block;background:#2e7d32;color:#c8e6c9;text-align:center;padding:5px;font-size:.65rem}}
@@ -129,8 +143,11 @@
   <div class="lg"><div class="ld" style="background:#1565c0"></div> Atrakcie</div>
   <div class="lg"><div class="ld" style="background:#7b1fa2"></div> Aquaparky</div>
   <div class="lg"><div class="ld" style="background:#00796b"></div> Príroda</div>
+  <div class="lg"><div class="ld" style="background:#ff9800"></div> 🍊 Trhy</div>
   <div class="lg"><div class="ld" style="background:#00acc1"></div> 🤿 Šnorchlovanie</div>
   <div class="lg"><div class="ld" style="background:#8d6e63"></div> 🥐 Pekárne</div>
+  <div class="lg"><div class="ld" style="background:#d32f2f"></div> ➕ Zdravie / Lekár</div>
+  <div class="lg"><div class="ld" style="background:#4caf50"></div> ➕ Lekáreň</div>
   <div class="lg"><div class="ld" style="background:#f57f17"></div> ⛽ Pumpy letisko</div>
   <div class="lg"><div class="ld" style="background:#ad1457"></div> ⛽ Pumpy hotel</div>
   <div class="lg"><div class="ld" style="background:#0277bd"></div> 🚗 ClickRent</div>
@@ -174,21 +191,39 @@ function mi(col,em,sz){
     className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz],popupAnchor:[0,-sz]
   });
 }
+// Špeciálna ikonka pre Nemocnice (biely kríž cez CSS class)
+function miCross(col,sz){
+  sz=sz||32;
+  return L.divIcon({
+    html:`<div style="background:${col};width:${sz}px;height:${sz}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center"><span class="cross-icon" style="transform:rotate(45deg)">+</span></div>`,
+    className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz],popupAnchor:[0,-sz]
+  });
+}
+
 const icH=mi('#e53935','🏨',44);
 const icA=mi('#1565c0','⭐',32);
 const icQ=mi('#7b1fa2','🎢',32);
 const icN=mi('#00796b','🌿',30);
 const icSn=mi('#00acc1','🤿',30);
 const icBk=mi('#8d6e63','🥐',30);
+const icMk=mi('#ff9800','🍊',30);
 const icGA=mi('#f57f17','⛽',28);
 const icGH=mi('#ad1457','⛽',28);
 const icCR=mi('#0277bd','🚗',34);
+
+// Nemocnice = červená s krížom
+const icMd=miCross('#d32f2f',32);
+// Lekárne = zelená s krížom
+const icPh=miCross('#4caf50',28);
 
 function gIc(c){
   if(c==='aqua') return icQ;
   if(c==='nature') return icN;
   if(c==='snorkel') return icSn;
   if(c==='bakery') return icBk;
+  if(c==='health') return icMd;
+  if(c==='pharmacy') return icPh;
+  if(c==='market') return icMk;
   return icA;
 }
 
@@ -273,6 +308,28 @@ const A=[
    ap:10,cp:4.5,cn:"Deti 8–14r. (<8r. zadarmo)",cp2:4.5,
    web:"https://www.cartujadevallemossa.com/",cat:"attr"},
 
+  // TRHY
+  {name:"🍊 Trh Sineu",lat:39.64322804993875,lng:3.0121832453547985,
+   local:"Mercado de Sineu",address:"Plaça es Fossar, Sineu",
+   hours:"STREDA 8:00 – 13:30",
+   desc:"Najstarší a najväčší trh na ostrove. Historický poľnohospodársky trh (aj zvieratá), lokálne produkty, oblečenie.",
+   free:true,cat:"market"},
+  {name:"🍊 Trh Pollença",lat:39.87708349341568,lng:3.0162692303710403,
+   local:"Mercado de Pollença",address:"Plaça Major, Pollença",
+   hours:"NEDEĽA 8:00 – 13:30",
+   desc:"Veľmi pekný kultivovaný trh na hlavnom námestí. Prémiové potraviny, keramika a remeslá.",
+   free:true,cat:"market"},
+  {name:"🍊 Trh Artà",lat:39.69326987530206,lng:3.349347347895767,
+   local:"Mercado de Artà",address:"Plaça del Conqueridor, Artà",
+   hours:"UTOROK 8:00 – 13:30",
+   desc:"Rozkošný trh v uličkách pod hradom, kúsok od hotela. Prútené košíky, čerstvé potraviny, umenie.",
+   free:true,cat:"market",web:"https://mercadillos.org/es/arta/mercadillo-arta"},
+  {name:"🍊 Trh Son Servera",lat:39.62050226836185,lng:3.3601339515084767,
+   local:"Mercat de Son Servera",address:"Plaça de Sant Joan, Son Servera",
+   hours:"PIATOK 8:00 – 13:30",
+   desc:"Trh vo vašej susednej dedine. Ideálny na nákup čerstvého ovocia a zeleniny, syrov a oblečenia.",
+   free:true,cat:"market"},
+
   // AQUAPARKY
   {name:"🎢 Aqualand El Arenal",lat:39.49591185421109,lng:2.7594918690052372,
    local:"Aqualand El Arenal, S'Arenal, Llucmajor",address:"Autopista Palma – s'Arenal, sortida 13",
@@ -332,31 +389,30 @@ const A=[
   // ŠNORCHLOVANIE
   {name:"🤿 Cala Morlanda",lat:39.55795737496299,lng:3.3706441580937954,
    local:"Cala Morlanda, S'Illot",address:"S'Illot",
-   hours:"Celodenný prístup",
    desc:"Úžasná skalnatá zátoka. Absencia piesku znamená perfektnú viditeľnosť a veľa rýb.",
    free:true,cat:"snorkel"},
   {name:"🤿 Cala Gat",lat:39.71312067353789,lng:3.47005449187343,
    local:"Cala Gat, Cala Ratjada",address:"Cala Ratjada",
-   hours:"Celodenný prístup",
    desc:"Malá piesočnatá zátoka so skalami po okrajoch, veľmi čistá plytká voda ideálna pre deti.",
    free:true,cat:"snorkel"},
   {name:"🤿 Cala Varques",lat:39.500027263507675,lng:3.296060276075966,
    local:"Cala Varques, Manacor",address:"Manacor",
-   hours:"Celodenný prístup",
    desc:"Panenská zátoka. Prístup pešo cez les (~15 min), ale vynikajúce podmienky na potápanie.",
    free:true,cat:"snorkel"},
   {name:"🤿 Cala s'Almunia",lat:39.31298915868401,lng:3.1188890547712798,
    local:"Cala s'Almunia, Santanyí",address:"Santanyí",
-   hours:"Celodenný prístup",
    desc:"Zátoka so starými rybárskymi domčekmi a skalami, veľmi fotogenická a bohatá na podmorský život.",
    free:true,cat:"snorkel"},
   {name:"🤿 Cala Llombards",lat:39.32388732825907,lng:3.1383303864991863,
    local:"Cala Llombards, Santanyí",address:"Santanyí",
-   hours:"Celodenný prístup",
    desc:"Krásna piesočnatá zátoka, oplatí sa šnorchlovať pozdĺž skalnatých okrajov.",
    free:true,cat:"snorkel"},
+  {name:"🤿 Cala Mendia",lat:39.520044876307345,lng:3.3131829226355407,
+   local:"Cala Mendia, Porto Cristo",address:"Porto Cristo Novo",
+   desc:"Krásna rodinná zátoka s bielym pieskom a plytkou vodou. Na okrajoch skaly ideálne na šnorchlovanie.",
+   free:true,cat:"snorkel"},
 
-  // PEKÁRNE
+  // PEKÁRNE (bez otváracích hodín)
   {name:"🥐 Forn de la Soca",lat:39.57153787884731,lng:2.6501560487439098,
    local:"Palma",address:"Carrer de Sant Jaume 23, Palma",
    desc:"Tradičná pekáreň zameraná na historické malorské recepty. Super Ensaïmada!",
@@ -380,7 +436,39 @@ const A=[
   {name:"🥐 Panaderia Payeras",lat:39.90641101137541,lng:3.0819056423279356,
    local:"Port de Pollença",address:"Port de Pollença",
    desc:"Veľmi obľúbená pekáreň s výborným malorským chlebom a plnenými empanadami.",
-   consum:true,cat:"bakery"}
+   consum:true,cat:"bakery"},
+
+  // ZDRAVIE A LEKÁRI
+  {name:"➕ Hospital de Manacor",lat:39.5794834598306,lng:3.207394533387695,
+   local:"Štátna Nemocnica Manacor",address:"Ctra. Manacor-Alcúdia, s/n, Manacor",
+   hours:"Pohotovosť (Urgencias) otvorená 24/7",
+   desc:"Najväčšia nemocnica pre celý východný región. Rýchla pomoc pri vážnejších problémoch.",
+   consum:true,cat:"health"},
+  {name:"➕ PAC Son Servera",lat:39.617236130050806,lng:3.361213475153707,
+   local:"PAC Son Servera (Centro de Salud)",address:"Son Servera",
+   hours:"Zvyčajne 24 hodín (Pohotovosť pre okolie)",
+   desc:"Lokálna štátna poliklinika a pohotovosť blízko Cala Millor. Ideálne na drobné úrazy a náhle ochorenia.",
+   consum:true,cat:"health"},
+  {name:"➕ PAC Manacor",lat:39.567668667191846,lng:3.2027785482459468,
+   local:"PAC Manacor (Centro de Salud)",address:"Manacor",
+   hours:"Zvyčajne 24 hodín (Pohotovosť)",
+   desc:"Miestne zdravotné stredisko v Manacore. Slúži na bežné a ľahšie úrazy, kým nemocnica rieši ťažké prípady.",
+   consum:true,cat:"health"},
+  {name:"➕ Klinika Juaneda Cala Millor",lat:39.59150024951076,lng:3.383396059003141,
+   local:"Cala Millor",address:"Cala Millor",
+   hours:"Pohotovosť otvorená 24/7",
+   desc:"Súkromná klinika. Hovorí sa tu po anglicky a nemecky. Výborné pre cestovné poistenie (rýchlejšie ako verejná).",
+   consum:true,cat:"health"},
+
+  // LEKÁRNE
+  {name:"➕ Farmàcia Aina Mª Alcover",lat:39.60395610406724,lng:3.384372600584705,
+   local:"Lekáreň Cala Millor",address:"Cala Millor",
+   desc:"Centrálna lekáreň v letovisku. Na dverách majú rozpis službukonajúcich lekární (Farmacia de Guardia).",
+   consum:true,cat:"pharmacy"},
+  {name:"➕ Farmàcia Riera Garau",lat:39.604248361814335,lng:3.3864849201956844,
+   local:"Lekáreň Cala Millor",address:"Cala Millor",
+   desc:"Lekáreň blízko pláže. Na dverách majú rozpis službukonajúcich lekární (Farmacia de Guardia).",
+   consum:true,cat:"pharmacy"}
 ];
 
 const GA=[
@@ -415,8 +503,8 @@ const WP=[
 ];
 
 function priceBox(p){
-  if(p.consum) return `<div class="pb">🍽️ <strong>Platí sa podľa útraty</strong></div>`;
-  if(p.free) return `<div class="pb">✅ <strong>Vstup zadarmo</strong>${p.cn?'<br>💡 '+p.cn:''}</div>`;
+  if(p.consum) return `<div class="pb">💳 <strong>Platí sa podľa spotreby/úkonu</strong></div>`;
+  if(p.free) return `<div class="pb">✅ <strong>Zadarmo</strong>${p.cn?'<br>💡 '+p.cn:''}</div>`;
   if(!p.ap) return '';
   const ch=p.cp2||p.cp;
   const tot=(p.ap*2+ch*2).toFixed(2);
