@@ -24,11 +24,12 @@
     #legend{
       position:fixed;bottom:14px;left:8px;background:rgba(255,255,255,.95);border-radius:10px;
       padding:8px 12px;font-size:.7rem;box-shadow:0 2px 10px rgba(0,0,0,.15);z-index:1100;
-      border:1px solid #c8e6c9;max-width:180px;transition:all .3s
+      border:1px solid #c8e6c9;max-width:180px;transition:all .3s;
+      max-height:50vh;overflow-y:auto;
     }
     #legend.collapsed{padding:0;max-width:36px;border-radius:50%;width:36px;height:36px;overflow:hidden;cursor:pointer}
     #legend.collapsed *:not(#leg-toggle){display:none}
-    #legend h4{margin-bottom:4px;color:#2e7d32;font-size:.78rem}
+    #legend h4{margin-bottom:4px;color:#2e7d32;font-size:.78rem;position:sticky;top:0;background:rgba(255,255,255,.95);padding-bottom:2px}
     .lg{display:flex;align-items:center;gap:5px;margin:2px 0}
     .ld{width:11px;height:11px;border-radius:50%;flex-shrink:0}
     #leg-toggle{
@@ -128,6 +129,8 @@
   <div class="lg"><div class="ld" style="background:#1565c0"></div> Atrakcie</div>
   <div class="lg"><div class="ld" style="background:#7b1fa2"></div> Aquaparky</div>
   <div class="lg"><div class="ld" style="background:#00796b"></div> Príroda</div>
+  <div class="lg"><div class="ld" style="background:#00acc1"></div> 🤿 Šnorchlovanie</div>
+  <div class="lg"><div class="ld" style="background:#8d6e63"></div> 🥐 Pekárne</div>
   <div class="lg"><div class="ld" style="background:#f57f17"></div> ⛽ Pumpy letisko</div>
   <div class="lg"><div class="ld" style="background:#ad1457"></div> ⛽ Pumpy hotel</div>
   <div class="lg"><div class="ld" style="background:#0277bd"></div> 🚗 ClickRent</div>
@@ -175,10 +178,19 @@ const icH=mi('#e53935','🏨',44);
 const icA=mi('#1565c0','⭐',32);
 const icQ=mi('#7b1fa2','🎢',32);
 const icN=mi('#00796b','🌿',30);
+const icSn=mi('#00acc1','🤿',30);
+const icBk=mi('#8d6e63','🥐',30);
 const icGA=mi('#f57f17','⛽',28);
 const icGH=mi('#ad1457','⛽',28);
 const icCR=mi('#0277bd','🚗',34);
-function gIc(c){return c==='aqua'?icQ:c==='nature'?icN:icA}
+
+function gIc(c){
+  if(c==='aqua') return icQ;
+  if(c==='nature') return icN;
+  if(c==='snorkel') return icSn;
+  if(c==='bakery') return icBk;
+  return icA;
+}
 
 const H={name:"🏨 Aparthotel Ciudad Laurel",
   lat:39.608516693115234,lng:3.383681297302246,
@@ -197,6 +209,7 @@ const CR={name:"🚗 ClickRent – Autopožičovňa",
   web:"https://www.clickrent.es/en/"};
 
 const A=[
+  // ATRAKCIE
   {name:"⛪ Katedrála La Seu",lat:39.5674732,lng:2.648168,
    local:"Catedral de Mallorca (La Seu), Palma",address:"Plaça de la Seu, 07001 Palma",
    hours:"Po–Pi 10:00–17:15, So 10:00–14:15 (apr–sep)",
@@ -260,6 +273,7 @@ const A=[
    ap:10,cp:4.5,cn:"Deti 8–14r. (<8r. zadarmo)",cp2:4.5,
    web:"https://www.cartujadevallemossa.com/",cat:"attr"},
 
+  // AQUAPARKY
   {name:"🎢 Aqualand El Arenal",lat:39.49591185421109,lng:2.7594918690052372,
    local:"Aqualand El Arenal, S'Arenal, Llucmajor",address:"Autopista Palma – s'Arenal, sortida 13",
    hours:"Jún–Sep: 10:00–17:00/18:00",
@@ -281,6 +295,7 @@ const A=[
    ap:23,cp:16.5,cn:"Deti 4–12r.",cp2:16.5,
    web:"https://www.hidroparkalcudia.com/en/",cat:"aqua"},
 
+  // PRÍRODA
   {name:"🏔️ Cap de Formentor",lat:39.96164270952352,lng:3.2123418131974133,
    local:"Cap de Formentor, Pollença",address:"Far de Formentor, 07460 Pollença",
    hours:"Celodenný. Jún–sep: autobus z Port de Pollença (~5 €/os.)",
@@ -312,7 +327,60 @@ const A=[
    local:"Platja d'Es Trenc, Campos",address:"Es Trenc, 07630 Campos",
    hours:"Verejná pláž – celodenný",
    desc:"Najkrajšia prírodná pláž – tyrkysová voda, biely piesok.",
-   ap:0,cp:0,free:true,cn:"Parkovanie ~7 €",web:"",cat:"nature"}
+   ap:0,cp:0,free:true,cn:"Parkovanie ~7 €",web:"",cat:"nature"},
+
+  // ŠNORCHLOVANIE
+  {name:"🤿 Cala Morlanda",lat:39.55795737496299,lng:3.3706441580937954,
+   local:"Cala Morlanda, S'Illot",address:"S'Illot",
+   hours:"Celodenný prístup",
+   desc:"Úžasná skalnatá zátoka. Absencia piesku znamená perfektnú viditeľnosť a veľa rýb.",
+   free:true,cat:"snorkel"},
+  {name:"🤿 Cala Gat",lat:39.71312067353789,lng:3.47005449187343,
+   local:"Cala Gat, Cala Ratjada",address:"Cala Ratjada",
+   hours:"Celodenný prístup",
+   desc:"Malá piesočnatá zátoka so skalami po okrajoch, veľmi čistá plytká voda ideálna pre deti.",
+   free:true,cat:"snorkel"},
+  {name:"🤿 Cala Varques",lat:39.500027263507675,lng:3.296060276075966,
+   local:"Cala Varques, Manacor",address:"Manacor",
+   hours:"Celodenný prístup",
+   desc:"Panenská zátoka. Prístup pešo cez les (~15 min), ale vynikajúce podmienky na potápanie.",
+   free:true,cat:"snorkel"},
+  {name:"🤿 Cala s'Almunia",lat:39.31298915868401,lng:3.1188890547712798,
+   local:"Cala s'Almunia, Santanyí",address:"Santanyí",
+   hours:"Celodenný prístup",
+   desc:"Zátoka so starými rybárskymi domčekmi a skalami, veľmi fotogenická a bohatá na podmorský život.",
+   free:true,cat:"snorkel"},
+  {name:"🤿 Cala Llombards",lat:39.32388732825907,lng:3.1383303864991863,
+   local:"Cala Llombards, Santanyí",address:"Santanyí",
+   hours:"Celodenný prístup",
+   desc:"Krásna piesočnatá zátoka, oplatí sa šnorchlovať pozdĺž skalnatých okrajov.",
+   free:true,cat:"snorkel"},
+
+  // PEKÁRNE
+  {name:"🥐 Forn de la Soca",lat:39.57153787884731,lng:2.6501560487439098,
+   local:"Palma",address:"Carrer de Sant Jaume 23, Palma",
+   desc:"Tradičná pekáreň zameraná na historické malorské recepty. Super Ensaïmada!",
+   consum:true,cat:"bakery"},
+  {name:"🥐 Panadería Can Torres",lat:39.85336263701053,lng:3.122776300604106,
+   local:"Alcúdia",address:"Carrer Major 11, Alcúdia",
+   desc:"Útulná rodinná pekáreň priamo v starom meste s výbornými domácimi ensaïmadami.",
+   consum:true,cat:"bakery"},
+  {name:"🥐 Forn Can Juanito",lat:39.62096434288634,lng:3.360031204554388,
+   local:"Son Servera",address:"Son Servera",
+   desc:"Výborná pekáreň blízko vášho hotela v susednej dedine.",
+   consum:true,cat:"bakery"},
+  {name:"🥐 Pastisseria Cala Millor",lat:39.604041824869604,lng:3.3842518060552362,
+   local:"Cala Millor",address:"Cala Millor",
+   desc:"Výborná pekáreň/cukráreň priamo u vás. Tradičné dezerty a torty.",
+   consum:true,cat:"bakery"},
+  {name:"🥐 Forn Del Norte",lat:39.76609477482782,lng:2.7151593482616376,
+   local:"Sóller",address:"Sóller",
+   desc:"Tradičná pekáreň, kde nakupujú miestni čerstvé sladké aj slané pečivo.",
+   consum:true,cat:"bakery"},
+  {name:"🥐 Panaderia Payeras",lat:39.90641101137541,lng:3.0819056423279356,
+   local:"Port de Pollença",address:"Port de Pollença",
+   desc:"Veľmi obľúbená pekáreň s výborným malorským chlebom a plnenými empanadami.",
+   consum:true,cat:"bakery"}
 ];
 
 const GA=[
@@ -347,6 +415,7 @@ const WP=[
 ];
 
 function priceBox(p){
+  if(p.consum) return `<div class="pb">🍽️ <strong>Platí sa podľa útraty</strong></div>`;
   if(p.free) return `<div class="pb">✅ <strong>Vstup zadarmo</strong>${p.cn?'<br>💡 '+p.cn:''}</div>`;
   if(!p.ap) return '';
   const ch=p.cp2||p.cp;
@@ -361,10 +430,12 @@ function priceBox(p){
 function contentA(p){
   const dh=distKm(H.lat,H.lng,p.lat,p.lng).toFixed(1);
   const du=uLat?distKm(uLat,uLng,p.lat,p.lng).toFixed(1)+' km':'📱 zapnite GPS';
+  const hoursHtml = p.hours ? `<div class="ir"><span class="ic">🕐</span><span>${p.hours}</span></div>` : '';
+  
   return `<h3>${p.name}</h3>
     <div class="ir"><span class="ic">🏷️</span><span><em>${p.local}</em></span></div>
     <div class="ir"><span class="ic">📍</span><span>${p.address}</span></div>
-    <div class="ir"><span class="ic">🕐</span><span>${p.hours}</span></div>
+    ${hoursHtml}
     <div class="ir"><span class="ic">ℹ️</span><span>${p.desc}</span></div>
     ${priceBox(p)}
     <div class="dr">🏨 Od hotela: <strong>${dh} km</strong> (~${Math.round(parseFloat(dh)*1.3)} min)</div>
